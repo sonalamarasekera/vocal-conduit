@@ -22,6 +22,7 @@ INFERENCE
         On CPU inference --> Use `model.int8.onnx`
 
 5. Get API key from a chinese LLM provider. Used the below for this task.
+        pip install zhipuai
         LLM --> https://open.bigmodel.cn/
         API --> https://bigmodel.cn/usercenter/proj-mgmt/apikeys --> 8446ac418fc747d08ebe1e60e24d0733.YoOoPTf6ftBepD4b
 
