@@ -1,6 +1,0 @@
-name: asr_llm
-channels:
-  - defaults
-dependencies:
-  - python=3.10
-prefix: /root/miniconda3/envs/asr_llm
