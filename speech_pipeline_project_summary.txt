@@ -1,0 +1,196 @@
+PROJECT SUMMARY: Offline ASR → LLM → TTS Speech Pipeline
+
+========================================== PROJECT OBJECTIVE
+========================================== Design and implement a
+modular, production-ready speech processing pipeline that performs:
+
+1.  Offline Automatic Speech Recognition (ASR)
+2.  LLM-based text correction and normalization
+3.  Offline Text-To-Speech (TTS) synthesis
+
+The system is intended to be: - Modular - Replaceable at component
+level - Latency-aware - Suitable for customer productization - Designed
+to run partially offline - Deployable inside environments with
+restricted internet access - Compatible with Chinese language
+processing - Architected for future real-time streaming upgrades
+
+  ------------------
+  TECHNOLOGY STACK
+  ------------------
+
+ASR: - sherpa-onnx - Wenet Chinese ASR model - Offline inference -
+Supports waveform resampling
+
+LLM: - GLM-4.7 Flash API - Used exclusively for text correction and
+punctuation normalization - Cloud-based component
+
+TTS: - sherpa-onnx VITS Chinese model - Offline neural speech
+synthesis - Requires Jieba dictionary support - Produces PCM waveform
+output
+
+Audio Processing: - soundfile - numpy - sounddevice (optional depending
+on environment)
+
+  -------------------------------------
+  DESIGN CONSTRAINTS AND REQUIREMENTS
+  -------------------------------------
+
+Architectural Constraints: - Maintain strict modular separation - Avoid
+monolithic scripts - Allow component replacement - Ensure each module
+has single responsibility - Maintain pipeline orchestration layer
+
+Operational Constraints: - ASR must operate fully offline - TTS must
+operate fully offline - LLM may remain cloud-based - Pipeline must
+support batch audio processing - Pipeline must be expandable to
+real-time streaming later
+
+Engineering Requirements: - All modules must expose clean input/output
+contracts - Audio data must standardize to numpy float32 PCM - Pipeline
+must support resampling safely - Latency logging must be supported -
+Modules must not contain UI logic - Playback must remain optional and
+environment dependent
+
+Deployment Constraints: - Must be portable - Must allow packaging via
+container or cloud service - Must support environments with limited
+external access
+
+  -------------------------------
+  PROJECT STRUCTURE IMPLEMENTED
+  -------------------------------
+
+asr/ asr_engine.py
+
+llm/ fix_asr_text.py
+
+tts/ tts_sherpa.py
+
+audio/ audio_io.py
+
+pipeline/ pipeline_controller.py
+
+main.py
+
+  ----------------
+  MODULE DETAILS
+  ----------------
+
+ASR ENGINE
+
+File: asr_engine.py
+
+Purpose: - Initialize Sherpa OfflineRecognizer - Accept audio file
+input - Perform waveform decoding - Return raw transcription text -
+Return ASR latency measurement
+
+Key Features: - Uses Wenet CTC model - Handles automatic resampling -
+Strict sample rate validation
+
+Output Contract: (raw_text: str, latency: float)
+
+LLM TEXT FIXER
+
+File: fix_asr_text.py
+
+Purpose: - Receive raw ASR text - Correct punctuation and grammar -
+Preserve semantic meaning - Provide cleaner conversational output
+
+Implementation: - Uses GLM Flash API - Prompt-based correction
+
+Output Contract: (corrected_text: str)
+
+TTS ENGINE
+
+File: tts_sherpa.py
+
+Purpose: - Load sherpa-onnx VITS Chinese TTS model - Load lexicon, token
+files, and Jieba dictionary - Convert corrected text to speech waveform
+
+Implementation Notes: - OfflineTtsConfig required precise
+configuration - Must specify dictionary directory - Requires rule FST
+files - Audio output returned as PCM waveform
+
+Output Contract: (samples: numpy float32 array, sample_rate: int)
+
+AUDIO I/O MODULE
+
+File: audio_io.py
+
+Purpose: - Provide optional playback abstraction - Provide environment
+independent audio output - Support file output fallback
+
+Supports: - WAV file saving - Optional sounddevice playback
+
+PIPELINE CONTROLLER
+
+File: pipeline_controller.py
+
+Purpose: - Orchestrate ASR → LLM → TTS - Maintain separation between
+components - Provide synchronous baseline processing - Return
+intermediate and final results
+
+Processing Flow: Audio File ↓ ASR transcription ↓ LLM correction ↓ TTS
+waveform generation
+
+Output Contract: (raw_text, corrected_text, samples, sample_rate)
+
+MAIN ENTRY SCRIPT
+
+File: main.py
+
+Purpose: - Instantiate all engines - Provide execution entry point -
+Provide testing and validation harness
+
+  -----------------------------
+  TECHNICAL CHALLENGES SOLVED
+  -----------------------------
+
+1.  sherpa-onnx OfflineTts constructor mismatch
+2.  ONNX graph loading errors
+3.  Model compatibility version mismatches
+4.  Jieba dictionary requirements for Chinese frontend
+5.  FST rule file loading requirements
+6.  Audio waveform type mismatch (list vs numpy array)
+7.  Environment playback dependency failures (PortAudio)
+8.  Resampling handling inside ASR
+
+  --------------------
+  PERFORMANCE STATUS
+  --------------------
+
+Validated End-to-End Pipeline: - Offline ASR functional - LLM correction
+functional - Offline TTS synthesis functional - Audio output generation
+validated
+
+Typical Latency Profile: ASR: ~1 second LLM: ~0.3–0.6 seconds TTS:
+~0.2–0.5 seconds
+
+  -----------------------------
+  CURRENT SYSTEM CAPABILITIES
+  -----------------------------
+
+✔ Mandarin speech recognition ✔ Text normalization via LLM ✔ Natural
+Mandarin speech synthesis ✔ Batch audio file processing ✔ Modular design
+✔ Expandable architecture
+
+  ------------------------------
+  INTENDED FUTURE IMPROVEMENTS
+  ------------------------------
+
+1.  Microphone push-to-talk capture
+2.  Streaming ASR support
+3.  Streaming TTS support
+4.  Async orchestration controller
+5.  Dialogue memory and intent classification
+6.  GUI interfaces
+7.  Containerized deployment
+8.  Cloud hosting compatibility
+
+  ----------------
+  PROJECT STATUS
+  ----------------
+
+Milestone Achieved: Fully functional modular offline speech assistant
+backend pipeline validated.
+
+Next Phase: Productization, UI integration, and deployment strategy
+development.
