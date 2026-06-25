@@ -1,1 +1,3 @@
-Repo for ASR -> LLM -> TTS pipeline
+Repo for a sleek ASR -> LLM -> TTS edge pipeline
+
+This is a work in progress ...
